@@ -9,44 +9,51 @@ import SwiftUI
 
 struct EditView: View {
     @Binding var pitcher: Pitchers
-
-    @State var pitchTypes: [PitchType] = [
-        PitchType(name: "Fastball", isOn: false),
-        PitchType(name: "Curveball", isOn: false),
-        PitchType(name: "Slider", isOn: false),
-        PitchType(name: "Changeup", isOn: false),
-        PitchType(name: "Cutter", isOn: false),
-        PitchType(name: "Sinker", isOn: false),
-        PitchType(name: "Splitter", isOn: false),
-        PitchType(name: "Knuckleball", isOn: false)
+    
+    private let allPitchNames = [
+        "Fastball", "Curveball", "Slider", "Changeup",
+        "Cutter", "Sinker", "Splitter", "Knuckleball"
     ]
+    @Environment(\.dismiss) var dismiss
+    @State var selectedPitches: Set<String> = []
+    
     var body: some View {
         VStack(spacing: 20) {
             Text("Edit Pitcher")
                 .font(.largeTitle)
                 .fontWeight(.semibold)
                 .padding(.top)
-
+            
             TextField("Pitcher name", text: $pitcher.name)
                 .padding()
                 .background(Color(.systemGray6))
                 .clipShape(RoundedRectangle(cornerRadius: 10))
                 .padding(.horizontal)
-
+            
             VStack(alignment: .leading, spacing: 10) {
                 Text("Pitches")
                     .font(.headline)
-
-                ForEach($pitchTypes) { $pitch in
-                    Toggle(pitch.name, isOn: $pitch.isOn)
+                
+                ForEach(allPitchNames, id: \.self) { pitchName in
+                    Toggle(pitchName, isOn: Binding(
+                        get: { selectedPitches.contains(pitchName) },
+                        set: { isOn in
+                            if isOn {
+                                selectedPitches.insert(pitchName)
+                            } else {
+                                selectedPitches.remove(pitchName)
+                            }
+                        }
+                    ))
                 }
             }
             .padding(.horizontal)
-
+            
             Spacer()
-
+            
             Button {
-                //pitcher.pitches = pitchTypes.filter { $0.value }.map { $0.key }
+                pitcher.pitches = Array(selectedPitches)
+                dismiss()
             } label: {
                 Text("Save Changes")
                     .font(.headline)
@@ -59,10 +66,7 @@ struct EditView: View {
             }
         }
         .onAppear {
-            // load current pitches into toggles
-            //for key in pitchTypes.keys {
-                //pitchTypes[key] = pitcher.pitches.contains(key)
-            //}
+            selectedPitches = Set(pitcher.pitches)
         }
     }
 }

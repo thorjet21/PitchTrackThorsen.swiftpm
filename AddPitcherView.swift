@@ -9,18 +9,12 @@ import SwiftUI
 
 struct AddPitcherView: View {
     @Environment(\.dismiss) var dismiss
-    
     @State var name = ""
+    @State var selectedPitches: Set<String> = []
     
-    @State var pitchTypes: [PitchType] = [
-        PitchType(name: "Fastball", isOn: false),
-        PitchType(name: "Curveball", isOn: false),
-        PitchType(name: "Slider", isOn: false),
-        PitchType(name: "Changeup", isOn: false),
-        PitchType(name: "Cutter", isOn: false),
-        PitchType(name: "Sinker", isOn: false),
-        PitchType(name: "Splitter", isOn: false),
-        PitchType(name: "Knuckleball", isOn: false)
+    private let allPitchNames = [
+        "Fastball", "Curveball", "Slider", "Changeup",
+        "Cutter", "Sinker", "Splitter", "Knuckleball"
     ]
     
     var onSave: (Pitchers) -> Void
@@ -42,8 +36,11 @@ struct AddPitcherView: View {
                 Text("Pitches")
                     .font(.headline)
                 
-                ForEach($pitchTypes) { $pitch in
-                    Toggle(pitch.name, isOn: $pitch.isOn)
+                ForEach(allPitchNames, id: \.self) { pitch in
+                    Toggle(pitch, isOn: Binding(
+                        get: { selectedPitches.contains(pitch) },
+                        set: { selectedPitches.insert(pitch); if !$0 { selectedPitches.remove(pitch) } }
+                    ))
                 }
             }
             .padding(.horizontal)
@@ -51,32 +48,23 @@ struct AddPitcherView: View {
             Spacer()
             
             Button {
-                let selected = pitchTypes
-                    .filter { $0.isOn }
-                    .map { $0.name }
-                
-                let new = Pitchers(
-                    name: name,
-                    pitchcount: 0,
-                    inning: 0.0,
-                    era: 0.0,
-                    strike: 0.0,
-                    pitches: selected
+                let newPitcher = Pitchers(
+                    name: name.isEmpty ? "New Pitcher" : name,
+                    pitches: Array(selectedPitches)
                 )
-                
-                onSave(new)
+                onSave(newPitcher)
                 dismiss()
-                
             } label: {
                 Text("Save")
                     .font(.headline)
                     .frame(maxWidth: .infinity)
                     .padding()
-                    .background(Color.blue)
+                    .background(name.isEmpty ? Color.gray : Color.blue)
                     .foregroundColor(.white)
                     .clipShape(RoundedRectangle(cornerRadius: 12))
                     .padding(.horizontal)
             }
+            .disabled(name.isEmpty)
         }
     }
 }
