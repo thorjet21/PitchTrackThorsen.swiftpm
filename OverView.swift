@@ -8,25 +8,46 @@
 import SwiftUI
 
 struct OverView: View {
-    var pitchers: [Pitchers]
+    @State var pitchers: [Pitchers]
 
     var body: some View {
-        VStack {
-            Text("Pitcher Overview")
-                .font(.largeTitle)
-                .fontWeight(.semibold)
-                .padding(.top)
-
+        ZStack {
             if pitchers.isEmpty {
-                Spacer()
-                Text("No pitchers added yet.")
-                    .foregroundColor(.gray)
-                Spacer()
+                VStack {
+                    Text("No pitchers added yet")
+                        .font(.headline)
+                        .foregroundColor(.gray)
+                }
             } else {
-                List(pitchers, id: \.name) { pitcher in
-                    Text(pitcher.name)
+                List {
+                    ForEach(pitchers.indices, id: \.self) { index in
+                        NavigationLink(destination: EditView(pitcher: $pitchers[index])) {
+                            VStack(alignment: .leading, spacing: 6) {
+                                Text(pitchers[index].name)
+                                    .font(.headline)
+
+                                Text("Pitches: \(pitchers[index].pitches.joined(separator: ", "))")
+                                    .font(.subheadline)
+                                    .foregroundColor(.gray)
+
+                                Text("Pitch Count: \(pitchers[index].pitchcount)")
+                                    .font(.subheadline)
+
+                                Text("Innings: \(String(format: "%.1f", pitchers[index].inning))")
+                                    .font(.subheadline)
+
+                                Text("ERA: \(String(format: "%.3f", pitchers[index].era))")
+                                    .font(.subheadline)
+
+                                Text("Strike %: \(String(format: "%.3f", pitchers[index].strike))")
+                                    .font(.subheadline)
+                            }
+                            .padding(.vertical, 4)
+                        }
+                    }
                 }
             }
         }
+        .navigationTitle("Pitchers")
     }
 }
