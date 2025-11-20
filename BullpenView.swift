@@ -7,17 +7,15 @@
 
 import SwiftUI
 
-import SwiftUI
-
 struct BullpenView: View {
-    @State var pitchers: [Pitchers] = []
-    @State private var showingPicker = false
-    @State private var selectedPitcher: Pitchers? = nil
-    @State private var selectedPitchType = ""
-    @State private var strikeOrBall = ""
-    @State private var pitchLocation: CGPoint? = nil
+    @Binding var pitchers: [Pitchers]
+    @State var showingPicker = false
+    @State var selectedPitcher: Pitchers? = nil
+    @State var selectedPitchType = ""
+    @State var strikeOrBall = ""
+    @State var pitchLocation: CGPoint? = nil
 
-    let pitchTypes = ["Fastball", "Curveball", "Slider", "Changeup", "Cutter", "Sinker"]
+    private let pitchTypes = ["Fastball", "Curveball", "Slider", "Changeup", "Cutter", "Sinker"]
 
     var body: some View {
         VStack(spacing: 20) {
@@ -73,6 +71,7 @@ struct BullpenView: View {
                         .padding(.horizontal)
                     }
 
+                    // Strike / Ball buttons
                     HStack {
                         Button {
                             strikeOrBall = "Strike"
@@ -101,24 +100,52 @@ struct BullpenView: View {
                     Text("Tap the zone to mark location")
                         .font(.subheadline)
 
-                    ZStack {
-                        Rectangle()
-                            .stroke(Color.black, lineWidth: 2)
-                            .frame(width: 200, height: 250)
-                            .onTapGesture { location in
-                                pitchLocation = location
-                            }
+                    // Strike zone with tap location support
+                    GeometryReader { geo in
+                        ZStack {
+                            let zoneWidth: CGFloat = 200
+                            let zoneHeight: CGFloat = 250
 
-                        if let loc = pitchLocation {
-                            Circle()
-                                .fill(.blue)
-                                .frame(width: 14, height: 14)
-                                .position(loc)
+                            Rectangle()
+                                .stroke(Color.black, lineWidth: 2)
+                                .frame(width: zoneWidth, height: zoneHeight)
+                                .contentShape(Rectangle())
+                                .gesture(
+                                    DragGesture(minimumDistance: 0)
+                                        .onChanged { value in
+                                            let frame = CGRect(
+                                                x: (geo.size.width - zoneWidth) / 2,
+                                                y: (geo.size.height - zoneHeight) / 2,
+                                                width: zoneWidth,
+                                                height: zoneHeight
+                                            )
+
+                                            if frame.contains(value.location) {
+                                                let pointInZone = CGPoint(
+                                                    x: value.location.x, //- frame.origin.x,
+                                                    y: value.location.y - frame.origin.y
+                                                )
+                                                pitchLocation = pointInZone
+                                            }
+                                        }
+                                )
+
+                            if let loc = pitchLocation {
+                                Circle()
+                                    .fill(.blue)
+                                    .frame(width: 14, height: 14)
+                                    .position(
+                                        x: (geo.size.width - zoneWidth) / 2 + loc.x,
+                                        y: (geo.size.height - zoneHeight) / 2 + loc.y
+                                    )
+                            }
                         }
                     }
+                    .frame(height: 260)
 
+                    // Save Pitch button
                     Button {
-                     
+                        savePitch()
                     } label: {
                         Text("Save Pitch")
                             .frame(maxWidth: .infinity)
@@ -128,10 +155,40 @@ struct BullpenView: View {
                             .clipShape(RoundedRectangle(cornerRadius: 12))
                             .padding(.horizontal)
                     }
+                    .disabled(
+                        selectedPitcher == nil ||
+                        selectedPitchType.isEmpty ||
+                        strikeOrBall.isEmpty ||
+                        pitchLocation == nil
+                    )
                 }
             }
 
             Spacer()
+        }
+    }
+
+    private func savePitch() {
+        guard var pitcher = selectedPitcher,
+              !selectedPitchType.isEmpty,
+              !strikeOrBall.isEmpty,
+              pitchLocation != nil
+        else { return }
+
+        // increment pitch count
+        let oldPitchCount = pitcher.pitchcount
+        pitcher.pitchcount += 1
+
+        // approximate strike percentage
+        let previousStrikes = Int(round(pitcher.strike * Double(max(oldPitchCount, 1))))
+        let newStrikes = strikeOrBall == "Strike" ? previousStrikes + 1 : previousStrikes
+        let newStrikePercent = Double(newStrikes) / Double(pitcher.pitchcount)
+        pitcher.strike = newStrikePercent
+
+        // push updated pitcher back into shared array so UI updates
+        if let index = pitchers.firstIndex(where: { $0.id == pitcher.id }) {
+            pitchers[index] = pitcher
+            selectedPitcher = pitchers[index]
         }
     }
 }

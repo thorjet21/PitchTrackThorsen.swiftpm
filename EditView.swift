@@ -14,6 +14,7 @@ struct EditView: View {
         "Fastball", "Curveball", "Slider", "Changeup",
         "Cutter", "Sinker", "Splitter", "Knuckleball"
     ]
+    
     @Environment(\.dismiss) var dismiss
     @State var selectedPitches: Set<String> = []
     

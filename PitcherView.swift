@@ -7,8 +7,9 @@ struct PitcherView: View {
     var body: some View {
         NavigationStack {
             VStack(spacing: 24) {
-                
+
                 Spacer()
+
                 Button {
                     showAddView = true
                 } label: {
@@ -27,7 +28,7 @@ struct PitcherView: View {
                     }
                 }
 
-                NavigationLink(destination: OverView(pitchers: pitchers)) {
+                NavigationLink(destination: OverView(pitchers: $pitchers)) {
                     Text("Pitcher Overview")
                         .font(.headline)
                         .frame(maxWidth: .infinity)
@@ -38,7 +39,7 @@ struct PitcherView: View {
                         .padding(.horizontal)
                 }
 
-                NavigationLink(destination: BullpenView()) {
+                NavigationLink(destination: BullpenView(pitchers: $pitchers)) {
                     Text("Bullpen")
                         .font(.headline)
                         .frame(maxWidth: .infinity)

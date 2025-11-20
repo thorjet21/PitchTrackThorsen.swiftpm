@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct OverView: View {
-    @State var pitchers: [Pitchers]
+    @Binding var pitchers: [Pitchers]
 
     var body: some View {
         ZStack {
