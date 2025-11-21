@@ -13,9 +13,22 @@ struct BullpenView: View {
     @State var selectedPitcher: Pitchers? = nil
     @State var selectedPitchType = ""
     @State var strikeOrBall = ""
-    @State var pitchLocation: CGPoint? = nil
+    @State var selectedLocation = ""
+    @State var lastPitchInfo = ""
 
-    private let pitchTypes = ["Fastball", "Curveball", "Slider", "Changeup", "Cutter", "Sinker"]
+    // 3x3 strike zone labels
+    let zoneButtons = [
+        ["High-In", "High-Middle", "High-Away"],
+        ["Mid-In", "Mid-Middle", "Mid-Away"],
+        ["Low-In", "Low-Middle", "Low-Away"]
+    ]
+
+    // Grid for pitch type buttons
+    let pitchColumns = [
+        GridItem(.flexible()),
+        GridItem(.flexible()),
+        GridItem(.flexible())
+    ]
 
     var body: some View {
         VStack(spacing: 20) {
@@ -26,6 +39,7 @@ struct BullpenView: View {
 
             Spacer(minLength: 10)
 
+            // Pitcher picker
             Button {
                 showingPicker = true
             } label: {
@@ -42,125 +56,149 @@ struct BullpenView: View {
                 ForEach(pitchers, id: \.id) { p in
                     Button(p.name) {
                         selectedPitcher = p
+                        selectedPitchType = ""
+                        strikeOrBall = ""
+                        selectedLocation = ""
+                        lastPitchInfo = ""
                     }
                 }
                 Button("Cancel", role: .cancel) {}
             }
 
             if let pitcher = selectedPitcher {
-                VStack(spacing: 16) {
+                ScrollView {
+                    VStack(spacing: 16) {
 
-                    Text("Tracking: \(pitcher.name)")
-                        .font(.title2)
+                        // Pitcher name
+                        Text("Tracking: \(pitcher.name)")
+                            .font(.title2)
 
-                    // Pitch type chooser
-                    ScrollView(.horizontal) {
-                        HStack {
-                            ForEach(pitchTypes, id: \.self) { pitch in
-                                Button {
-                                    selectedPitchType = pitch
-                                } label: {
-                                    Text(pitch)
-                                        .padding(10)
-                                        .background(selectedPitchType == pitch ? .blue : .gray.opacity(0.3))
-                                        .foregroundColor(.white)
-                                        .clipShape(RoundedRectangle(cornerRadius: 10))
+                        // STATS SECTION (bullpen-relevant only)
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("Session Stats")
+                                .font(.headline)
+                                .padding(.horizontal)
+
+                            HStack(spacing: 12) {
+                                statBox(title: "Pitches", value: "\(pitcher.pitchcount)")
+                                statBox(
+                                    title: "Strike %",
+                                    value: pitcher.pitchcount == 0
+                                        ? "0%"
+                                        : String(format: "%.0f%%", pitcher.strike * 100)
+                                )
+                                statBox(
+                                    title: "Last Pitch",
+                                    value: lastPitchInfo.isEmpty ? "-" : lastPitchInfo
+                                )
+                            }
+                            .padding(.horizontal)
+                        }
+
+                        // PITCH TYPE BUTTONS – ONLY THIS PITCHER'S PITCHES
+                        if pitcher.pitches.isEmpty {
+                            Text("No pitches set for this pitcher.\nEdit the pitcher to add pitches.")
+                                .font(.subheadline)
+                                .multilineTextAlignment(.center)
+                                .foregroundColor(.gray)
+                                .padding(.horizontal)
+                        } else {
+                            VStack(alignment: .leading, spacing: 8) {
+                                Text("Pitch Type")
+                                    .font(.headline)
+                                    .padding(.horizontal)
+
+                                LazyVGrid(columns: pitchColumns, spacing: 10) {
+                                    ForEach(pitcher.pitches, id: \.self) { pitch in
+                                        Button {
+                                            selectedPitchType = pitch
+                                        } label: {
+                                            Text(pitch)
+                                                .font(.caption)
+                                                .padding(8)
+                                                .frame(maxWidth: .infinity)
+                                                .background(selectedPitchType == pitch ? .blue : .gray.opacity(0.3))
+                                                .foregroundColor(.white)
+                                                .clipShape(RoundedRectangle(cornerRadius: 10))
+                                        }
+                                    }
                                 }
+                                .padding(.horizontal)
+                            }
+                        }
+
+                        // Strike / Ball chooser
+                        HStack {
+                            Button {
+                                strikeOrBall = "Strike"
+                            } label: {
+                                Text("Strike")
+                                    .padding()
+                                    .frame(maxWidth: .infinity)
+                                    .background(strikeOrBall == "Strike" ? .green : .gray.opacity(0.3))
+                                    .foregroundColor(.white)
+                                    .clipShape(RoundedRectangle(cornerRadius: 10))
+                            }
+
+                            Button {
+                                strikeOrBall = "Ball"
+                            } label: {
+                                Text("Ball")
+                                    .padding()
+                                    .frame(maxWidth: .infinity)
+                                    .background(strikeOrBall == "Ball" ? .red : .gray.opacity(0.3))
+                                    .foregroundColor(.white)
+                                    .clipShape(RoundedRectangle(cornerRadius: 10))
                             }
                         }
                         .padding(.horizontal)
-                    }
 
-                    // Strike / Ball buttons
-                    HStack {
-                        Button {
-                            strikeOrBall = "Strike"
-                        } label: {
-                            Text("Strike")
-                                .padding()
-                                .frame(maxWidth: .infinity)
-                                .background(strikeOrBall == "Strike" ? .green : .gray.opacity(0.3))
-                                .foregroundColor(.white)
-                                .clipShape(RoundedRectangle(cornerRadius: 10))
-                        }
+                        // Strike zone buttons
+                        Text("Choose Pitch Location")
+                            .font(.subheadline)
 
-                        Button {
-                            strikeOrBall = "Ball"
-                        } label: {
-                            Text("Ball")
-                                .padding()
-                                .frame(maxWidth: .infinity)
-                                .background(strikeOrBall == "Ball" ? .red : .gray.opacity(0.3))
-                                .foregroundColor(.white)
-                                .clipShape(RoundedRectangle(cornerRadius: 10))
-                        }
-                    }
-                    .padding(.horizontal)
+                        VStack(spacing: 10) {
+                            ForEach(0..<zoneButtons.count, id: \.self) { row in
+                                HStack(spacing: 10) {
+                                    ForEach(0..<zoneButtons[row].count, id: \.self) { col in
+                                        let zone = zoneButtons[row][col]
 
-                    Text("Tap the zone to mark location")
-                        .font(.subheadline)
-
-                    // Strike zone with tap location support
-                    GeometryReader { geo in
-                        ZStack {
-                            let zoneWidth: CGFloat = 200
-                            let zoneHeight: CGFloat = 250
-
-                            Rectangle()
-                                .stroke(Color.black, lineWidth: 2)
-                                .frame(width: zoneWidth, height: zoneHeight)
-                                .contentShape(Rectangle())
-                                .gesture(
-                                    DragGesture(minimumDistance: 0)
-                                        .onChanged { value in
-                                            let frame = CGRect(
-                                                x: (geo.size.width - zoneWidth) / 2,
-                                                y: (geo.size.height - zoneHeight) / 2,
-                                                width: zoneWidth,
-                                                height: zoneHeight
-                                            )
-
-                                            if frame.contains(value.location) {
-                                                let pointInZone = CGPoint(
-                                                    x: value.location.x, //- frame.origin.x,
-                                                    y: value.location.y - frame.origin.y
-                                                )
-                                                pitchLocation = pointInZone
-                                            }
+                                        Button {
+                                            selectedLocation = zone
+                                        } label: {
+                                            Text(zone)
+                                                .font(.caption)
+                                                .padding(8)
+                                                .frame(maxWidth: .infinity)
+                                                .background(selectedLocation == zone ? .blue : .gray.opacity(0.2))
+                                                .foregroundColor(.white)
+                                                .clipShape(RoundedRectangle(cornerRadius: 8))
                                         }
-                                )
-
-                            if let loc = pitchLocation {
-                                Circle()
-                                    .fill(.blue)
-                                    .frame(width: 14, height: 14)
-                                    .position(
-                                        x: (geo.size.width - zoneWidth) / 2 + loc.x,
-                                        y: (geo.size.height - zoneHeight) / 2 + loc.y
-                                    )
+                                    }
+                                }
+                                .padding(.horizontal)
                             }
                         }
-                    }
-                    .frame(height: 260)
 
-                    // Save Pitch button
-                    Button {
-                        savePitch()
-                    } label: {
-                        Text("Save Pitch")
-                            .frame(maxWidth: .infinity)
-                            .padding()
-                            .background(.blue)
-                            .foregroundColor(.white)
-                            .clipShape(RoundedRectangle(cornerRadius: 12))
-                            .padding(.horizontal)
+                        // Save pitch
+                        Button {
+                            savePitch()
+                        } label: {
+                            Text("Save Pitch")
+                                .frame(maxWidth: .infinity)
+                                .padding()
+                                .background(.blue)
+                                .foregroundColor(.white)
+                                .clipShape(RoundedRectangle(cornerRadius: 12))
+                                .padding(.horizontal)
+                        }
+                        .disabled(
+                            selectedPitchType.isEmpty ||
+                            strikeOrBall.isEmpty ||
+                            selectedLocation.isEmpty ||
+                            selectedPitcher == nil
+                        )
                     }
-                    .disabled(
-                        selectedPitcher == nil ||
-                        selectedPitchType.isEmpty ||
-                        strikeOrBall.isEmpty ||
-                        pitchLocation == nil
-                    )
                 }
             }
 
@@ -168,27 +206,46 @@ struct BullpenView: View {
         }
     }
 
-    private func savePitch() {
-        guard var pitcher = selectedPitcher,
-              !selectedPitchType.isEmpty,
-              !strikeOrBall.isEmpty,
-              pitchLocation != nil
-        else { return }
+    // Small reusable view for each stat box
+    func statBox(title: String, value: String) -> some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text(title)
+                .font(.caption)
+                .foregroundColor(.gray)
+            Text(value)
+                .font(.headline)
+                .lineLimit(2)
+                .minimumScaleFactor(0.7)
+        }
+        .padding(8)
+        .frame(maxWidth: .infinity)
+        .background(Color(.systemGray6))
+        .clipShape(RoundedRectangle(cornerRadius: 10))
+    }
 
-        // increment pitch count
-        let oldPitchCount = pitcher.pitchcount
+    func savePitch() {
+        guard let pitcher = selectedPitcher else { return }
+
+        // update bullpen stats: pitchcount + strike %
+        let oldCount = pitcher.pitchcount
         pitcher.pitchcount += 1
 
-        // approximate strike percentage
-        let previousStrikes = Int(round(pitcher.strike * Double(max(oldPitchCount, 1))))
+        let previousStrikes = Int(round(pitcher.strike * Double(max(oldCount, 1))))
         let newStrikes = strikeOrBall == "Strike" ? previousStrikes + 1 : previousStrikes
-        let newStrikePercent = Double(newStrikes) / Double(pitcher.pitchcount)
-        pitcher.strike = newStrikePercent
+        pitcher.strike = Double(newStrikes) / Double(pitcher.pitchcount)
 
-        // push updated pitcher back into shared array so UI updates
+        // push back into array
         if let index = pitchers.firstIndex(where: { $0.id == pitcher.id }) {
             pitchers[index] = pitcher
             selectedPitcher = pitchers[index]
         }
+
+        // update last pitch summary
+        lastPitchInfo = "\(selectedPitchType) • \(strikeOrBall) • \(selectedLocation)"
+
+        // Optional: reset selections for next pitch
+        selectedPitchType = ""
+        strikeOrBall = ""
+        selectedLocation = ""
     }
 }
