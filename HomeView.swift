@@ -9,7 +9,7 @@ import SwiftUI
 
 struct HomeView: View {
     var team: Teams
-    @State private var selectedTab = 0
+    @State var selectedTab = 0
     
     var body: some View {
         VStack(spacing: 0) {
