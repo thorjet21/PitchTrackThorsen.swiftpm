@@ -16,14 +16,12 @@ struct BullpenView: View {
     @State var selectedLocation = ""
     @State var lastPitchInfo = ""
 
-    // 3x3 strike zone labels
     let zoneButtons = [
         ["High-In", "High-Middle", "High-Away"],
         ["Mid-In", "Mid-Middle", "Mid-Away"],
         ["Low-In", "Low-Middle", "Low-Away"]
     ]
 
-    // Grid for pitch type buttons
     let pitchColumns = [
         GridItem(.flexible()),
         GridItem(.flexible()),
@@ -39,7 +37,6 @@ struct BullpenView: View {
 
             Spacer(minLength: 10)
 
-            // Pitcher picker
             Button {
                 showingPicker = true
             } label: {
@@ -69,11 +66,9 @@ struct BullpenView: View {
                 ScrollView {
                     VStack(spacing: 16) {
 
-                        // Pitcher name
                         Text("Tracking: \(pitcher.name)")
                             .font(.title2)
 
-                        // STATS SECTION (bullpen-relevant only)
                         VStack(alignment: .leading, spacing: 8) {
                             Text("Session Stats")
                                 .font(.headline)
@@ -95,7 +90,6 @@ struct BullpenView: View {
                             .padding(.horizontal)
                         }
 
-                        // PITCH TYPE BUTTONS – ONLY THIS PITCHER'S PITCHES
                         if pitcher.pitches.isEmpty {
                             Text("No pitches set for this pitcher.\nEdit the pitcher to add pitches.")
                                 .font(.subheadline)

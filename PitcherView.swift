@@ -10,23 +10,6 @@ struct PitcherView: View {
 
                 Spacer()
 
-                Button {
-                    showAddView = true
-                } label: {
-                    Text("Add Pitcher")
-                        .font(.headline)
-                        .frame(maxWidth: .infinity)
-                        .padding()
-                        .background(.blue)
-                        .foregroundColor(.white)
-                        .clipShape(RoundedRectangle(cornerRadius: 12))
-                        .padding(.horizontal)
-                }
-                .sheet(isPresented: $showAddView) {
-                    AddPitcherView { newPitcher in
-                        pitchers.append(newPitcher)
-                    }
-                }
 
                 NavigationLink(destination: OverView(pitchers: $pitchers)) {
                     Text("Pitcher Overview")

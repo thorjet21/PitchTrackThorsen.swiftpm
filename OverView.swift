@@ -9,9 +9,11 @@ import SwiftUI
 
 struct OverView: View {
     @Binding var pitchers: [Pitchers]
+    @State private var showingAddPitcher = false
 
     var body: some View {
         ZStack {
+            
             if pitchers.isEmpty {
                 VStack {
                     Text("No pitchers added yet")
@@ -49,5 +51,19 @@ struct OverView: View {
             }
         }
         .navigationTitle("Pitchers")
+        .toolbar {
+            ToolbarItem(placement: .navigationBarTrailing) {
+                Button {
+                    showingAddPitcher = true
+                } label: {
+                    Image(systemName: "plus")
+                }
+            }
+        }
+        .sheet(isPresented: $showingAddPitcher) {
+            AddPitcherView { newPitcher in
+                pitchers.append(newPitcher)
+            }
+        }
     }
 }
