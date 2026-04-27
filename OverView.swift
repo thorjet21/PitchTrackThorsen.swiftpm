@@ -8,13 +8,13 @@
 import SwiftUI
 
 struct OverView: View {
-    @Binding var pitchers: [Pitchers]
+    @EnvironmentObject var store: DataStore
+    let teamIndex: Int
     @State private var showingAddPitcher = false
 
     var body: some View {
         ZStack {
-            
-            if pitchers.isEmpty {
+            if store.teams[teamIndex].pitchers.isEmpty {
                 VStack {
                     Text("No pitchers added yet")
                         .font(.headline)
@@ -22,30 +22,25 @@ struct OverView: View {
                 }
             } else {
                 List {
-                    ForEach(pitchers.indices, id: \.self) { index in
-                        NavigationLink(destination: EditView(pitcher: $pitchers[index])) {
+                    ForEach(store.teams[teamIndex].pitchers.indices, id: \.self) { index in
+                        NavigationLink(
+                            destination: EditView(teamIndex: teamIndex, pitcherIndex: index)
+                        ) {
                             VStack(alignment: .leading, spacing: 6) {
-                                Text(pitchers[index].name)
+                                Text(store.teams[teamIndex].pitchers[index].name)
                                     .font(.headline)
-
-                                Text("Pitches: \(pitchers[index].pitches.joined(separator: ", "))")
+                                Text("Pitches: \(store.teams[teamIndex].pitchers[index].pitches.joined(separator: ", "))")
+                                    .font(.subheadline).foregroundColor(.gray)
+                                Text("Pitch Count: \(store.teams[teamIndex].pitchers[index].pitchcount)")
                                     .font(.subheadline)
-                                    .foregroundColor(.gray)
-
-                                Text("Pitch Count: \(pitchers[index].pitchcount)")
-                                    .font(.subheadline)
-
-                                Text("Innings: \(String(format: "%.1f", pitchers[index].inning))")
-                                    .font(.subheadline)
-
-                                Text("ERA: \(String(format: "%.3f", pitchers[index].era))")
-                                    .font(.subheadline)
-
-                                Text("Strike %: \(String(format: "%.3f", pitchers[index].strike))")
+                                Text("Strike %: \(String(format: "%.1f%%", store.teams[teamIndex].pitchers[index].strike * 100))")
                                     .font(.subheadline)
                             }
                             .padding(.vertical, 4)
                         }
+                    }
+                    .onDelete { offsets in
+                        store.teams[teamIndex].pitchers.remove(atOffsets: offsets)
                     }
                 }
             }
@@ -53,16 +48,14 @@ struct OverView: View {
         .navigationTitle("Pitchers")
         .toolbar {
             ToolbarItem(placement: .navigationBarTrailing) {
-                Button {
-                    showingAddPitcher = true
-                } label: {
+                Button { showingAddPitcher = true } label: {
                     Image(systemName: "plus")
                 }
             }
         }
         .sheet(isPresented: $showingAddPitcher) {
             AddPitcherView { newPitcher in
-                pitchers.append(newPitcher)
+                store.teams[teamIndex].pitchers.append(newPitcher)
             }
         }
     }

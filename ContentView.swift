@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct ContentView: View {
-    @State private var teams: [Teams] = []
+    @EnvironmentObject var store: DataStore
     @State private var showingAlert = false
     @State private var newTeamName = ""
 
@@ -13,7 +13,7 @@ struct ContentView: View {
                     .fontWeight(.semibold)
                     .padding(.top)
 
-                if teams.isEmpty {
+                if store.teams.isEmpty {
                     Spacer()
                     Text("No teams yet.")
                         .foregroundColor(.gray)
@@ -21,9 +21,9 @@ struct ContentView: View {
                     Spacer()
                 } else {
                     List {
-                        ForEach(teams, id: \.name) { team in
-                            NavigationLink(destination: HomeView(team: team)) {
-                                Text(team.name)
+                        ForEach(store.teams.indices, id: \.self) { index in
+                            NavigationLink(destination: HomeView(teamIndex: index)) {
+                                Text(store.teams[index].name)
                             }
                         }
                         .onDelete(perform: deleteTeam)
@@ -45,21 +45,19 @@ struct ContentView: View {
                 .alert("Add Team", isPresented: $showingAlert) {
                     TextField("Enter team name", text: $newTeamName)
                     Button("Save") {
-                        if !newTeamName.trimmingCharacters(in: .whitespaces).isEmpty {
-                            let team = Teams(name: newTeamName)
-                            teams.append(team)
+                        let trimmed = newTeamName.trimmingCharacters(in: .whitespaces)
+                        if !trimmed.isEmpty {
+                            store.teams.append(Teams(name: trimmed))
                             newTeamName = ""
                         }
                     }
-                    Button("Cancel", role: .cancel) {
-                        newTeamName = ""
-                    }
+                    Button("Cancel", role: .cancel) { newTeamName = "" }
                 }
             }
         }
     }
 
     func deleteTeam(at offsets: IndexSet) {
-        teams.remove(atOffsets: offsets)
+        store.teams.remove(atOffsets: offsets)
     }
 }

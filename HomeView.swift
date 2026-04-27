@@ -8,36 +8,31 @@
 import SwiftUI
 
 struct HomeView: View {
-    var team: Teams
+    @EnvironmentObject var store: DataStore
+    let teamIndex: Int
     @State var selectedTab = 0
-    
+
     var body: some View {
         VStack(spacing: 0) {
-            Text(team.name)
+            Text(store.teams[teamIndex].name)
                 .font(.largeTitle)
                 .fontWeight(.semibold)
                 .padding(.top)
-            
+
             Spacer()
 
             TabView(selection: $selectedTab) {
-                HomeTab(team: team)
+                HomeTab(teamIndex: teamIndex)
                     .tag(0)
-                    .tabItem {
-                        Label("Home", systemImage: "house.fill")
-                    }
+                    .tabItem { Label("Home", systemImage: "house.fill") }
 
                 TeamView()
                     .tag(1)
-                    .tabItem {
-                        Label("Team", systemImage: "person.3.fill")
-                    }
+                    .tabItem { Label("Team", systemImage: "person.3.fill") }
 
-                PitcherView()
+                PitcherView(teamIndex: teamIndex)
                     .tag(2)
-                    .tabItem {
-                        Label("Pitching", systemImage: "figure.baseball")
-                    }
+                    .tabItem { Label("Pitching", systemImage: "figure.baseball") }
             }
         }
         .navigationBarBackButtonHidden(false)
@@ -45,8 +40,7 @@ struct HomeView: View {
 }
 
 struct HomeTab: View {
-    var team: Teams
-
+    let teamIndex: Int
     var body: some View {
         VStack {
             Spacer()
@@ -56,8 +50,4 @@ struct HomeTab: View {
             Spacer()
         }
     }
-}
-
-#Preview {
-    HomeView(team: Teams(name: "Demo Team"))
 }

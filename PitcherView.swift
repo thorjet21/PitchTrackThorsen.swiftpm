@@ -1,17 +1,15 @@
 import SwiftUI
 
 struct PitcherView: View {
-    @State var pitchers: [Pitchers] = []
-    @State var showAddView = false
+    @EnvironmentObject var store: DataStore
+    let teamIndex: Int
 
     var body: some View {
         NavigationStack {
             VStack(spacing: 24) {
-
                 Spacer()
 
-
-                NavigationLink(destination: OverView(pitchers: $pitchers)) {
+                NavigationLink(destination: OverView(teamIndex: teamIndex)) {
                     Text("Pitcher Overview")
                         .font(.headline)
                         .frame(maxWidth: .infinity)
@@ -22,7 +20,7 @@ struct PitcherView: View {
                         .padding(.horizontal)
                 }
 
-                NavigationLink(destination: BullpenView(pitchers: $pitchers)) {
+                NavigationLink(destination: BullpenView(teamIndex: teamIndex)) {
                     Text("Bullpen")
                         .font(.headline)
                         .frame(maxWidth: .infinity)
