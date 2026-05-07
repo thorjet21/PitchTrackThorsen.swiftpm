@@ -118,7 +118,7 @@ struct BullpenView: View {
                             }
                         }
 
-                        Button { savePitch() } label: {
+                        Button{ savePitch()} label:{
                             Text("Save Pitch").frame(maxWidth: .infinity).padding()
                                 .background(.blue).foregroundColor(.white)
                                 .clipShape(RoundedRectangle(cornerRadius: 12)).padding(.horizontal)

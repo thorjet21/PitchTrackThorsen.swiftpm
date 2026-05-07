@@ -31,7 +31,7 @@ struct PitcherView: View {
                         .padding(.horizontal)
                 }
 
-                NavigationLink(destination: GameView()) {
+                NavigationLink(destination: GameView( teamIndex: teamIndex)) {
                     Text("Start Tracking")
                         .font(.headline)
                         .frame(maxWidth: .infinity)

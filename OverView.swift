@@ -10,46 +10,32 @@ import SwiftUI
 struct OverView: View {
     @EnvironmentObject var store: DataStore
     let teamIndex: Int
+
+    @State private var selectedTab = 0
     @State private var showingAddPitcher = false
 
     var body: some View {
-        ZStack {
-            if store.teams[teamIndex].pitchers.isEmpty {
-                VStack {
-                    Text("No pitchers added yet")
-                        .font(.headline)
-                        .foregroundColor(.gray)
-                }
+        VStack(spacing: 0) {
+            Picker("", selection: $selectedTab) {
+                Text("Bullpen").tag(0)
+                Text("Games").tag(1)
+            }
+            .pickerStyle(.segmented)
+            .padding()
+
+            if selectedTab == 0 {
+                BullpenStatsTab(teamIndex: teamIndex, showingAddPitcher: $showingAddPitcher)
             } else {
-                List {
-                    ForEach(store.teams[teamIndex].pitchers.indices, id: \.self) { index in
-                        NavigationLink(
-                            destination: EditView(teamIndex: teamIndex, pitcherIndex: index)
-                        ) {
-                            VStack(alignment: .leading, spacing: 6) {
-                                Text(store.teams[teamIndex].pitchers[index].name)
-                                    .font(.headline)
-                                Text("Pitches: \(store.teams[teamIndex].pitchers[index].pitches.joined(separator: ", "))")
-                                    .font(.subheadline).foregroundColor(.gray)
-                                Text("Pitch Count: \(store.teams[teamIndex].pitchers[index].pitchcount)")
-                                    .font(.subheadline)
-                                Text("Strike %: \(String(format: "%.1f%%", store.teams[teamIndex].pitchers[index].strike * 100))")
-                                    .font(.subheadline)
-                            }
-                            .padding(.vertical, 4)
-                        }
-                    }
-                    .onDelete { offsets in
-                        store.teams[teamIndex].pitchers.remove(atOffsets: offsets)
-                    }
-                }
+                GamesHistoryTab(teamIndex: teamIndex)
             }
         }
-        .navigationTitle("Pitchers")
+        .navigationTitle("Overview")
         .toolbar {
             ToolbarItem(placement: .navigationBarTrailing) {
-                Button { showingAddPitcher = true } label: {
-                    Image(systemName: "plus")
+                if selectedTab == 0 {
+                    Button { showingAddPitcher = true } label: {
+                        Image(systemName: "plus")
+                    }
                 }
             }
         }

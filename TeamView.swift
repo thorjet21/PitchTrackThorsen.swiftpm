@@ -9,7 +9,11 @@ import SwiftUI
 
 struct TeamView: View {
     var body: some View {
-        Text(/*@START_MENU_TOKEN@*/"Hello, World!"/*@END_MENU_TOKEN@*/)
+
+        Text("No Teams have been played yet.")
+            .font(.title3)
+            .foregroundColor(.gray)
+       
     }
 }
 
