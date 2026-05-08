@@ -29,7 +29,6 @@ struct GameSetupView: View {
                     .frame(maxWidth: .infinity, alignment: .center)
                     .padding(.top)
 
-                // Opponent
                 VStack(alignment: .leading, spacing: 12) {
                     Text("Opponent").font(.headline)
 
@@ -65,7 +64,6 @@ struct GameSetupView: View {
                 }
                 .padding(.horizontal)
 
-                // Pitcher
                 VStack(alignment: .leading, spacing: 12) {
                     Text("Starting Pitcher").font(.headline)
 

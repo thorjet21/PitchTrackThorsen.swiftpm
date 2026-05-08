@@ -159,7 +159,6 @@ struct GameTrackingView: View {
                     .disabled(!canSave)
                     .padding(.horizontal)
 
-                    // Recent pitches
                     if !game.pitches.isEmpty {
                         VStack(alignment: .leading, spacing: 8) {
                             Text("Recent Pitches").font(.headline).padding(.horizontal)
@@ -197,8 +196,6 @@ struct GameTrackingView: View {
             Text("This will save the game and return to setup.")
         }
     }
-
-    // MARK: - Helpers
 
     func countBadge(label: String, value: String, color: Color) -> some View {
         VStack(spacing: 2) {
