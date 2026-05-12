@@ -17,59 +17,78 @@ struct GameSetupView: View {
     let pitchers: [Pitchers]
     let onStart: () -> Void
 
+    @State private var showingNewOpponent = false
+
     var canStart: Bool {
         !opponentName.trimmingCharacters(in: .whitespaces).isEmpty && selectedPitcherIndex != nil
     }
 
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 24) {
+            VStack(alignment: .leading, spacing: 28) {
+
                 Text("New Game")
                     .font(.largeTitle).fontWeight(.semibold)
                     .frame(maxWidth: .infinity, alignment: .center)
                     .padding(.top)
 
-                VStack(alignment: .leading, spacing: 12) {
-                    Text("Opponent").font(.headline)
+                // Opponent
+                VStack(alignment: .leading, spacing: 10) {
+                    Text("Opponent").font(.headline).padding(.horizontal)
 
-                    Picker("", selection: $isNewOpponent) {
-                        Text("New Team").tag(true)
-                        Text("Previous Opponent").tag(false)
-                    }
-                    .pickerStyle(.segmented)
-
-                    if isNewOpponent || pastOpponents.isEmpty {
+                    if pastOpponents.isEmpty {
                         TextField("Enter team name", text: $opponentName)
                             .padding()
                             .background(Color(.systemGray6))
                             .clipShape(RoundedRectangle(cornerRadius: 10))
+                            .padding(.horizontal)
                     } else {
-                        ScrollView(.horizontal, showsIndicators: false) {
-                            HStack(spacing: 10) {
-                                ForEach(pastOpponents, id: \.self) { opp in
-                                    Button {
-                                        opponentName = opp
-                                    } label: {
-                                        Text(opp)
-                                            .font(.subheadline)
-                                            .padding(.horizontal, 14).padding(.vertical, 8)
-                                            .background(opponentName == opp ? Color.blue : Color(.systemGray5))
-                                            .foregroundColor(opponentName == opp ? .white : .primary)
-                                            .clipShape(Capsule())
+                        ForEach(pastOpponents, id: \.self) { opp in
+                            Button {
+                                opponentName = opp
+                            } label: {
+                                HStack {
+                                    Text(opp).font(.subheadline)
+                                        .foregroundColor(.primary)
+                                    Spacer()
+                                    if opponentName == opp {
+                                        Image(systemName: "checkmark.circle.fill")
+                                            .foregroundColor(.blue)
                                     }
                                 }
+                                .padding()
+                                .background(opponentName == opp ? Color.blue.opacity(0.1) : Color(.systemGray6))
+                                .clipShape(RoundedRectangle(cornerRadius: 10))
                             }
+                            .buttonStyle(.plain)
+                            .padding(.horizontal)
+                        }
+
+                        Button {
+                            showingNewOpponent = true
+                        } label: {
+                            HStack {
+                                Image(systemName: "plus.circle")
+                                Text("Add new opponent")
+                                Spacer()
+                            }
+                            .font(.subheadline)
+                            .foregroundColor(.blue)
+                            .padding()
+                            .background(Color(.systemGray6))
+                            .clipShape(RoundedRectangle(cornerRadius: 10))
+                            .padding(.horizontal)
                         }
                     }
                 }
-                .padding(.horizontal)
 
-                VStack(alignment: .leading, spacing: 12) {
-                    Text("Starting Pitcher").font(.headline)
+                // Pitcher
+                VStack(alignment: .leading, spacing: 10) {
+                    Text("Starting Pitcher").font(.headline).padding(.horizontal)
 
                     if pitchers.isEmpty {
                         Text("No pitchers added. Go to Pitcher Overview to add one.")
-                            .font(.subheadline).foregroundColor(.gray)
+                            .font(.subheadline).foregroundColor(.gray).padding(.horizontal)
                     } else {
                         ForEach(pitchers.indices, id: \.self) { i in
                             Button {
@@ -78,6 +97,7 @@ struct GameSetupView: View {
                                 HStack {
                                     VStack(alignment: .leading, spacing: 4) {
                                         Text(pitchers[i].name).font(.headline)
+                                            .foregroundColor(.primary)
                                         Text(pitchers[i].pitches.joined(separator: " · "))
                                             .font(.caption).foregroundColor(.gray)
                                     }
@@ -90,16 +110,12 @@ struct GameSetupView: View {
                                 .padding()
                                 .background(selectedPitcherIndex == i ? Color.blue.opacity(0.1) : Color(.systemGray6))
                                 .clipShape(RoundedRectangle(cornerRadius: 12))
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: 12)
-                                        .stroke(selectedPitcherIndex == i ? Color.blue : Color.clear, lineWidth: 1.5)
-                                )
                             }
                             .buttonStyle(.plain)
+                            .padding(.horizontal)
                         }
                     }
                 }
-                .padding(.horizontal)
 
                 Button(action: onStart) {
                     Text("Start Tracking")
@@ -112,6 +128,11 @@ struct GameSetupView: View {
                 .padding(.horizontal)
                 .padding(.bottom)
             }
+        }
+        .alert("New Opponent", isPresented: $showingNewOpponent) {
+            TextField("Enter team name", text: $opponentName)
+            Button("Add") {}
+            Button("Cancel", role: .cancel) { opponentName = "" }
         }
     }
 }

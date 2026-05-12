@@ -26,7 +26,7 @@ struct HomeView: View {
                     .tag(0)
                     .tabItem { Label("Home", systemImage: "house.fill") }
 
-                TeamView()
+                TeamView(teamIndex: teamIndex)
                     .tag(1)
                     .tabItem { Label("Team", systemImage: "person.3.fill") }
 
