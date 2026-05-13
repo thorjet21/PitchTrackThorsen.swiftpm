@@ -16,7 +16,7 @@ let package = Package(
         .iOSApplication(
             name: "PitchTrackThorsen",
             targets: ["AppModule"],
-            bundleIdentifier: "clc.PitchTrackThorsen",
+            bundleIdentifier: "clc.PitchTrack",
             teamIdentifier: "M8H326AP53",
             displayVersion: "1.0",
             bundleVersion: "1",
