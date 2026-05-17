@@ -7,10 +7,18 @@
 
 import SwiftUI
 
+struct IdentifiablePitcherIndex: Identifiable {
+    let id = UUID()
+    let index: Int
+}
+
 struct BullpenStatsTab: View {
     @EnvironmentObject var store: DataStore
     let teamIndex: Int
     @Binding var showingAddPitcher: Bool
+
+    @State private var editingPitcher: IdentifiablePitcherIndex? = nil
+    @State private var selectedPitcherIndex: Int? = nil
 
     var pitchers: [Pitchers] { store.teams[teamIndex].pitchers }
 
@@ -32,28 +40,58 @@ struct BullpenStatsTab: View {
         } else {
             List {
                 ForEach(pitchers.indices, id: \.self) { i in
-                    NavigationLink(destination: EditView(teamIndex: teamIndex, pitcherIndex: i)) {
-                        VStack(alignment: .leading, spacing: 6) {
-                            Text(pitchers[i].name).font(.headline)
-                            Text(pitchers[i].pitches.joined(separator: " · "))
-                                .font(.caption).foregroundColor(.gray)
-                            HStack(spacing: 16) {
-                                Label("\(pitchers[i].pitchcount) pitches", systemImage: "baseball")
-                                    .font(.caption2).foregroundColor(.secondary)
-                                Label(
-                                    pitchers[i].pitchcount == 0 ? "0% K" :
-                                        String(format: "%.0f%% K", pitchers[i].strike * 100),
-                                    systemImage: "percent"
-                                )
-                                .font(.caption2).foregroundColor(.secondary)
-                            }
+                    ZStack {
+                        NavigationLink(
+                            destination: BullpenPitcherDetailView(teamIndex: teamIndex, pitcherIndex: i),
+                            tag: i,
+                            selection: $selectedPitcherIndex
+                        ) {
+                            EmptyView()
                         }
-                        .padding(.vertical, 4)
+                        .opacity(0)
+
+                        Button {
+                            selectedPitcherIndex = i
+                        } label: {
+                            VStack(alignment: .leading, spacing: 6) {
+                                Text(pitchers[i].name).font(.headline)
+                                    .foregroundColor(.primary)
+                                Text(pitchers[i].pitches.joined(separator: " · "))
+                                    .font(.caption).foregroundColor(.gray)
+                                HStack(spacing: 16) {
+                                    Label("\(pitchers[i].pitchcount) pitches", systemImage: "baseball")
+                                        .font(.caption2).foregroundColor(.secondary)
+                                    Label(
+                                        pitchers[i].pitchcount == 0 ? "0% K" :
+                                            String(format: "%.0f%% K", pitchers[i].strike * 100),
+                                        systemImage: "percent"
+                                    )
+                                    .font(.caption2).foregroundColor(.secondary)
+                                }
+                            }
+                            .padding(.vertical, 4)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                        }
+                        .buttonStyle(.plain)
+                    }
+                    .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+                        Button(role: .destructive) {
+                            store.teams[teamIndex].pitchers.remove(at: i)
+                        } label: {
+                            Label("Delete", systemImage: "trash")
+                        }
+
+                        Button {
+                            editingPitcher = IdentifiablePitcherIndex(index: i)
+                        } label: {
+                            Label("Edit", systemImage: "pencil")
+                        }
+                        .tint(.blue)
                     }
                 }
-                .onDelete { offsets in
-                    store.teams[teamIndex].pitchers.remove(atOffsets: offsets)
-                }
+            }
+            .sheet(item: $editingPitcher) { item in
+                EditView(teamIndex: teamIndex, pitcherIndex: item.index)
             }
         }
     }
